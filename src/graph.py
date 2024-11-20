@@ -4,7 +4,8 @@ from typing import Annotated, List
 from langgraph.graph import END, StateGraph, START
 from langgraph.graph.message import add_messages
 from typing_extensions import TypedDict
-from tools import routerTool, generalInfoTool, generatorTool
+from tools import TreeSequenceTool
+
 from utils import execute_generated_code
 
 
@@ -45,7 +46,7 @@ def generate(state: GraphState):
     else:
         question = state['messages'][-1].content
 
-    code_solution = generatorTool(messages, question)
+    code_solution = TreeSequenceTool.generatorTool(messages, question)
     
     messages = [
         (
@@ -140,7 +141,7 @@ def router(state: GraphState):
     question = state['messages'][-1].content
 
     query = {'query':question}
-    answer = routerTool(query)
+    answer = TreeSequenceTool.routerTool(query)
 
     return {
         "next": answer.content.lower()
@@ -151,7 +152,7 @@ def general_info(state: GraphState):
     """
     conversation = state['messages']
 
-    answer = generalInfoTool(conversation)
+    answer = TreeSequenceTool.generalInfoTool(conversation)
 
     conversation = [(
             "assistant",
