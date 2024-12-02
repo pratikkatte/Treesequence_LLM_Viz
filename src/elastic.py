@@ -9,7 +9,7 @@ class ElasticsearchBM25:
     """
     """
     def __init__(self, index_name: str = "contextual_bm25_index"):
-        self.es_client = Elasticsearch("http://localhost:9200", api_key="TGhxdk1aTUI1WG0yUndmTWJaRkk6NE9VWHRwUWVSaW1tU2VNNnozQlZvQQ==")
+        self.es_client = Elasticsearch("http://localhost:9200")
         self.index_name = index_name
         self.create_index() # create indexing
 
