@@ -51,6 +51,7 @@ function Chatbot(props) {
     ]);
 
     // Scroll to the last assistant message
+
     lastAssistantMessageRef.current.scrollIntoView({ behavior: "smooth" });
   };
 
