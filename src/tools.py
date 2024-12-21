@@ -5,6 +5,7 @@ from langchain_openai import ChatOpenAI
 from faiss_vector import getRetriever
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
+from utils import execute_generated_code
 
 load_dotenv()
 
@@ -12,8 +13,13 @@ general_llm = ChatOpenAI(model_name='gpt-4o')
 
 retriever = getRetriever()
 
+def visualizationTool(question):
+    question = "the genereated code should only return newick string. Here is the question: " + question 
+    _ , newick_string = generatorTool(question)
 
-def generatorTool(messages, question):
+    return newick_string
+
+def generatorTool(question, input_file_path="./data/sample.trees"):
     # understnad, how this format of prompt engineering helps the LLM to get good results. 
 
     code_gen_prompt = ChatPromptTemplate.from_messages(
@@ -26,7 +32,7 @@ def generatorTool(messages, question):
                 with all required imports and variables defined. Structure your answer with a description of the code solution. \n
                 Then list the imports. And finally list the functioning code block. The function should return a string providing the answer. Here is the user question:""",
                 ), 
-                ("placeholder", "{messages}"),  
+                ("placeholder", "{messages}"), 
             ]
         )
 
@@ -50,10 +56,16 @@ def generatorTool(messages, question):
     context = "\n".join([doc.page_content for doc in docs])
 
     # infer
+
     code_solution = code_gen_chain.invoke(
-        {"context": context, "messages": messages}
+        {"context": context, "messages": [question]}
     )
-    return code_solution
+    print("code solution", code_solution)
+    
+    result = execute_generated_code(code_solution, input_file_path)
+
+
+    return code_solution, result
 
 def routerTool(query):
     """
@@ -71,18 +83,19 @@ def routerTool(query):
     answer = chain.invoke(query)
     return answer
 
-def generalInfoTool(conversation):
+def generalInfoTool(question):
     """
     """
     prompt_template = """
-    Here's the conversation as context: {conversation}
-    Respond appropriately based on the user's last message: {question}
+    You are an  expert in treesequences and population genetics and you help in answering queries related to it in general.
+    if the questions are not related to your experties then kindly remind them to ask questions in your domain of experties. 
+    Respond the users in brief based on this query or message: {question}
     """
     prompt = PromptTemplate(
-    input_variables=["conversation", 'question'], template=prompt_template
+    input_variables=['question'], template=prompt_template
     )
     chain = prompt | general_llm
-    query = {"conversation":conversation[:-1], "question":conversation[-1]}
+    query = {"question":question}
     answer = chain.invoke(query)
-
-    return answer
+    
+    return answer.content
